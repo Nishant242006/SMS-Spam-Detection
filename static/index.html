@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SMS Spam Detection</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3a8a;
+        }
+
+        p {
+            text-align: center;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            height: 140px;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .spam {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .ham {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        #tips {
+            margin-top: 10px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>SMS Spam Detection</h1>
+
+        <p>Enter an SMS message to check whether it is Spam or Ham.</p>
+
+        <textarea
+            id="message"
+            maxlength="500"
+            placeholder="Enter your SMS message here..."
+        ></textarea>
+
+        <button onclick="predictSMS()">Predict Message</button>
+
+        <div id="result"></div>
+
+        <ul id="tips"></ul>
+
+    </div>
+
+    <script>
+
+        async function predictSMS() {
+
+            const message = document.getElementById("message").value;
+            const resultBox = document.getElementById("result");
+            const tipsBox = document.getElementById("tips");
+
+            resultBox.style.display = "block";
+            resultBox.className = "";
+            resultBox.innerText = "Analyzing message...";
+
+            tipsBox.innerHTML = "";
+
+            try {
+
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.detail?.[0]?.msg || "Invalid message"
+                    );
+                }
+
+                resultBox.className =
+                    data.prediction.toLowerCase();
+
+                resultBox.innerText =
+                    "Prediction: " + data.prediction;
+
+                data.tips.forEach(tip => {
+
+                    const item = document.createElement("li");
+                    item.textContent = tip;
+                    tipsBox.appendChild(item);
+
+                });
+
+            } catch (error) {
+
+                resultBox.className = "spam";
+                resultBox.innerText = "Error: " + error.message;
+
+            }
+        }
+
+    </script>
+
+</body>
+</html>
