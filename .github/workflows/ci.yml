@@ -32,3 +32,6 @@ jobs:
       - name: Run automated tests
         run: |
           pytest tests/ -v
+
+      - name: Build Docker image
+        run: docker build -t sms-spam-detection .
